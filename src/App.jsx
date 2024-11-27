@@ -16,16 +16,18 @@ export const Th = (props) => {
 	const {children} = props;
 	return <th>{children}</th>
 }
-export const ListItems = ({input, playlist,tablekeys}) => {
+export const ListItems = ({input, playlist,tablekeys,limit,offset}) => {
 	const DefeInp = useDeferredValue(input);
 	const items = useMemo(()=>{
 		const newrrray = [];
+		const Foundrrray = [];
+		let Limiter = limit;
 		if( tablekeys.length > 0 ){
 			if(DefeInp !==""){
 				let inputl = DefeInp.toLowerCase();
 				playlist.forEach((item,ind) => {
 					let canBeAdded = false;
-					if(input !== '' && input.length > 3){
+					if(input !== '' && input.length >=3){
 						tablekeys.map((key) => {
 							if(item[key].toLowerCase().includes(inputl)){
 								canBeAdded = true;
@@ -33,18 +35,34 @@ export const ListItems = ({input, playlist,tablekeys}) => {
 						})
 					}
 					if(canBeAdded === true){
-						newrrray.push(<tr key={ind}>
-							{
-								tablekeys.map((key,ind) => {
-									return <Td key={ind}>{item[key]}</Td>;
-								})
-							}
-						</tr>);
+						// Foundrrray.push(item);
+						// if(Limiter > 0 && ind > offset ){
+							newrrray.push(<tr key={ind}>
+								{
+									tablekeys.map((key,ind) => {
+										return <Td key={ind}>{item[key]}</Td>;
+									})
+								}
+							</tr>);
+						// }
+						// Limiter--;
 					}
 				});
+				// const pages = new Array(Math.ceil(Foundrrray.length / limit)).fill(0);
+				// newrrray.push(
+				// 	<tr>
+				// 		<td colSpan={tablekeys.length} className={"text-center"}>
+				// 			{
+				// 				pages.map((i,ind) =>{
+				// 					return <a href={"#"}>{ind + 1}</a>
+				// 				})
+				// 			}
+				// 		</td>
+				// 	</tr>
+				// )
 			}
 			if(newrrray.length === 0){
-				if(DefeInp === "" || DefeInp.length <3 ){
+				if(DefeInp === "" || DefeInp.length < 3 ){
 					newrrray.push(
 						<tr>
 							<td colSpan={tablekeys.length} className={"text-center"}>Use search input!</td>
@@ -64,7 +82,7 @@ export const ListItems = ({input, playlist,tablekeys}) => {
 	return items;
 }
 export const Table = (props) => {
-	const {input,tablekeys,playlist} = props;
+	const {input,tablekeys,playlist,limit,offset} = props;
 	if(typeof playlist != "object"){
 		return <></>;
 	}
@@ -79,7 +97,7 @@ export const Table = (props) => {
 			</tr>
 			</thead>
 			<tbody>
-			{tablekeys.length > 0 && <ListItems input={input} playlist={playlist} tablekeys={tablekeys}/>}
+			{tablekeys.length > 0 && <ListItems input={input} playlist={playlist} tablekeys={tablekeys} limit={limit} offset={offset}/>}
 			</tbody>
 		</table>
 	</div>;
@@ -89,6 +107,8 @@ function App() {
 	const [count, setCount] = useState("")
 	const [playlist, setPlaylist] = useState([])
 	const [tablekeys, setTablekeys] = useState([])
+	const [limit, setLimit] = useState(10);
+	const [offset, setOffset] = useState(0)
 	useEffect( () => {
 		let ignore = false;
 		fetcher('https://raw.githubusercontent.com/htmldiz/play-list-repo-example/main/playlist.json').then(data => {
@@ -116,13 +136,17 @@ function App() {
 					</span>
 				</a>
 				<div className="form__group field">
-					<input className="form__field" placeholder="Name" type="text" typeof={"text"} onChange={(e) => {
-						setCount(e.target.value);
-					}}/>
-					<label htmlFor="name" className="form__label">Search</label>
+					<label htmlFor="name" className="form__label">
+						<svg className="icon" xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 24 24" fill="none">
+							<path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+						</svg>
+						<input id="name" className="form__field" placeholder="Search" type="text" typeof={"text"} onChange={(e) => {
+							setCount(e.target.value);
+						}}/>
+					</label>
 				</div>
 			</div>
-			<Table input={count} tablekeys={tablekeys} playlist={playlist}/>
+			<Table input={count} tablekeys={tablekeys} playlist={playlist} limit={limit} offset={offset}/>
 		</>
 	)
 }
